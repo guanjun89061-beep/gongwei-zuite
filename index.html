@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>工位嘴替 · 语音吐槽搭子</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      max-width: 720px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 8px;
+    }
+    .sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    label {
+      font-size: 14px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    select, button, input[type="text"] {
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      box-sizing: border-box;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .row > div {
+      flex: 1;
+    }
+    .btn-main {
+      background: #ef4444;
+      color: #ffffff;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 8px;
+    }
+    .btn-main:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-mic {
+      background: #0ea5e9;
+      color: #ffffff;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-mic.listening {
+      background: #22c55e;
+    }
+    .status {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+    .output {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>工位嘴替 · 语音吐槽搭子</h1>
+    <div class="sub">按住麦克风吐槽，点按钮让 AI 帮你骂回来，还会念出来给你听。</div>
+
+    <label for="scenario">今天发生了什么？（可以自己打字，也可以用语音）</label>
+    <textarea id="scenario" placeholder="例如：周五晚上 9 点，领导突然说方案不高级，要我重做，还暗示今晚最好能改完。"></textarea>
+
+    <div class="row">
+      <div>
+        <label for="target">你想骂谁？（老板 / 领导 / 甲方 / 同事…）</label>
+        <input id="target" type="text" placeholder="例如：领导、甲方、狗老板">
+      </div>
+      <div>
+        <label for="style">风格</label>
+        <select id="style">
+          <option value="rant">发疯吐槽风</option>
+          <option value="reply">高情商回怼风</option>
+          <option value="resign">辞职幻想风</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top: 8px;">
+      <button class="btn-main" id="btnSend">💣 帮我骂一骂</button>
+      <button class="btn-mic" id="btnMic">🎙 按一下开始说</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="output" id="output" style="display:none;"></div>
+  </div>
+
+  <script>
+    const btnSend = document.getElementById("btnSend");
+    const btnMic = document.getElementById("btnMic");
+    const statusEl = document.getElementById("status");
+    const outputEl = document.getElementById("output");
+    const scenarioEl = document.getElementById("scenario");
+
+    // ======== 语音转文字（语音输入） ========
+    let recognition = null;
+    let listening = false;
+
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        console.warn("当前浏览器不支持 SpeechRecognition");
+        statusEl.textContent = "当前浏览器不支持语音输入，可以先用文字吐槽～";
+        btnMic.disabled = true;
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = "zh-CN";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        listening = true;
+        btnMic.classList.add("listening");
+        btnMic.textContent = "🎙 正在听你吐槽…";
+        statusEl.textContent = "开始录音了，尽情骂。说完停一下我会自动识别。";
+      };
+
+      recognition.onend = () => {
+        listening = false;
+        btnMic.classList.remove("listening");
+        btnMic.textContent = "🎙 再说一段";
+        if (!scenarioEl.value.trim()) {
+          statusEl.textContent = "没听到内容或者时间太短，可以再试一次。";
+        } else {
+          statusEl.textContent = "语音已转成文字，你可以点「帮我骂一骂」。";
+        }
+      };
+
+      recognition.onerror = (event) => {
+        listening = false;
+        btnMic.classList.remove("listening");
+        btnMic.textContent = "🎙 再说一段";
+        console.error(event);
+        statusEl.textContent = "语音识别出错了，可以再试一次，或者改用文字输入。";
+      };
+
+      recognition.onresult = (event) => {
+        const result = event.results[0][0].transcript;
+        // 追加到文本框里，方便用户继续手动修改
+        if (scenarioEl.value.trim()) {
+          scenarioEl.value = scenarioEl.value.trim() + "\n" + result;
+        } else {
+          scenarioEl.value = result;
+        }
+      };
+    }
+
+    btnMic.addEventListener("click", () => {
+      if (!recognition) {
+        initSpeechRecognition();
+        if (!recognition) return;
+      }
+      if (!listening) {
+        recognition.start();
+      } else {
+        recognition.stop();
+      }
+    });
+
+    // ======== 调用后端 + 文字转语音（AI 回复语音） ========
+    async function sendRant() {
+      const scenario = scenarioEl.value.trim();
+      const target = document.getElementById("target").value.trim() || "对方";
+      const style = document.getElementById("style").value;
+
+      if (!scenario) {
+        alert("先把今天的破事说一说 / 写一写吧～");
+        return;
+      }
+
+      btnSend.disabled = true;
+      statusEl.textContent = "正在组织语言帮你骂人中……";
+      outputEl.style.display = "none";
+      outputEl.textContent = "";
+
+      try {
+        const resp = await fetch("/api/rant", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            scenario,
+            target,
+            style,
+            language: "zh"
+          })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || !data.success) {
+          console.error(data);
+          statusEl.textContent = "哎呀，骂到一半卡壳了……可以再试一次。";
+        } else {
+          const reply = data.data.reply;
+          statusEl.textContent = "好了！下面这段是你的专属嘴替输出：";
+          outputEl.style.display = "block";
+          outputEl.textContent = reply;
+
+          // === 浏览器朗读（TTS） ===
+          if ("speechSynthesis" in window) {
+            const utter = new SpeechSynthesisUtterance(reply);
+            utter.lang = "zh-CN";
+            utter.rate = 1.0;   // 语速
+            utter.pitch = 1.0;  // 音调
+            window.speechSynthesis.cancel(); // 先停掉之前的
+            window.speechSynthesis.speak(utter);
+          } else {
+            console.warn("当前浏览器不支持 speechSynthesis");
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "网络好像出问题了，检查一下后端是不是还开着。";
+      } finally {
+        btnSend.disabled = false;
+      }
+    }
+
+    btnSend.addEventListener("click", sendRant);
+  </script>
+</body>
+</html>
