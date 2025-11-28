@@ -1,23 +1,33 @@
-# Contributing to Zuiti（嘴替）
+# Contributing to Zuiti
 
-欢迎 PR / Issue！
+Thank you for your interest in contributing to **Zuiti — The Workplace Rant Companion**!  
+We welcome all kinds of contributions, including:
 
-## 提交 Issue
+- New features  
+- Bug fixes  
+- Documentation improvements  
+- UI/UX enhancements  
+- New rant personalities / styles  
+- Ideas and discussions  
 
-- Bug：描述复现步骤、期望结果、实际结果
-- 功能建议：说明你希望嘴替多什么功能
+This document explains how to contribute.
 
-## 提交 PR
+---
 
-1. Fork 本仓库
-2. 新建分支：`feature/my-feature`
-3. 改代码、测试
-4. 提交 PR，简单说明做了哪些修改
+## 🔧 Setting Up the Project Locally
 
-## 本地运行
+### Backend (Flask)
 
-后端：
 ```bash
+git clone https://github.com/guanjun89061-beep/gongwei-zuite.git
+cd gongwei-zuite
+
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+
 pip install -r requirements.txt
-set OPENAI_API_KEY=你的key
+
+# Set your key
+set OPENAI_API_KEY=your_key_here
+
 python app.py
