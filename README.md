@@ -1,18 +1,48 @@
-# 嘴替 · Zuiti
+# Zuiti · 嘴替  
+### The Open-Source AI Rant Companion for the Workplace  
+*(English version · [中文版本点这里](README_CN.md))*
 
-👄 一个帮你骂老板、骂甲方、骂同事的 AI 职场吐槽搭子。
+---
 
-- 后端：Flask + OpenAI API
-- 前端：简单 Web 页面
-- App：用 Expo + React Native 做一个 WebView 壳，打开线上页面
+## 🌟 Overview
 
-## 本地运行（后端）
+**Zuiti** is an open-source AI-powered “rant companion” designed for workplace stress relief.
 
-```bash
-git clone https://github.com/guanjun89061-beep/gongwei-zuite.git
-cd gongwei-zuite
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-set OPENAI_API_KEY=你的key
-python app.py
+When your boss suddenly says *“let’s realign the granularity and sync bottom-level logic”*  
+(…even though they don’t know what they’re talking about),
+
+Zuiti helps you translate that into:
+
+> “They have no idea what they want. They just want you to work overtime until they feel powerful.”
+
+This project is a fun, practical tool to:
+
+- Vent emotions safely  
+- Generate humorous, aggressive-but-clean rants  
+- Mock workplace jargon  
+- Role-play resignation speeches  
+- Release workplace pressure without risking your job  
+
+---
+
+## ✨ Features
+
+### ✓ Rant Generator  
+Input a scenario → Zuiti outputs a **20–40 second rant** with sarcasm, emotional release, and attitude.
+
+### ✓ “Rant Persona” (coming soon)  
+- Northeast China tough-guy style  
+- Cantonese auntie style  
+- Corporate-dark-humor style  
+- Anti-PUA mentor style  
+
+### ✓ Voice Input / Output (planned)  
+Microphone → STT → AI rant → TTS playback.
+
+### ✓ Mobile App (optional)  
+React Native + Expo shell that loads the web version.
+
+---
+
+## 🏗 Project Structure
+
